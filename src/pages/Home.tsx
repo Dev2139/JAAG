@@ -74,8 +74,10 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCity, setFilterCity] = useState("");
   const [filterProfession, setFilterProfession] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
   const [cities, setCities] = useState<string[]>([]);
   const [professions, setProfessions] = useState<string[]>([]);
+  const [batchYears, setBatchYears] = useState<number[]>([]);
 
   // Fetch alumni on component mount
   useEffect(() => {
@@ -98,12 +100,14 @@ export default function Home() {
 
       setAlumni(data || []);
 
-      // Extract unique cities and professions
+      // Extract unique cities, professions, and batch years
       const uniqueCities = [...new Set((data || []).map((a) => a.current_city))].sort();
       const uniqueProfessions = [...new Set((data || []).map((a) => a.profession))].sort();
+      const uniqueBatchYears = [...new Set((data || []).map((a) => a.batch_year))].sort((a, b) => b - a); // Sort descending
 
       setCities(uniqueCities);
       setProfessions(uniqueProfessions);
+      setBatchYears(uniqueBatchYears);
     } catch (err) {
       console.error("Error fetching alumni:", err);
     } finally {
@@ -118,8 +122,9 @@ export default function Home() {
 
     const matchesCity = !filterCity || item.current_city === filterCity;
     const matchesProfession = !filterProfession || item.profession === filterProfession;
+    const matchesBatch = !selectedBatch || item.batch_year === selectedBatch;
 
-    return matchesSearch && matchesCity && matchesProfession;
+    return matchesSearch && matchesCity && matchesProfession && matchesBatch;
   });
 
   // Profile detail view
@@ -292,13 +297,30 @@ export default function Home() {
 
         {/* Search & Filters */}
         <Card className="p-6 mb-8 bg-gray-100 border-2 border-black">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <Input
                 placeholder="Search by name or company..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+            </div>
+            <div>
+              <Select value={selectedBatch?.toString() || ""} onValueChange={(v) => setSelectedBatch(v ? parseInt(v) : null)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by batch year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batchYears.map((batch) => {
+                    const batchCount = alumni.filter((a) => a.batch_year === batch).length;
+                    return (
+                      <SelectItem key={batch} value={batch.toString()}>
+                        {batch} ({batchCount} alumni)
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Select value={filterProfession} onValueChange={setFilterProfession}>
@@ -335,6 +357,7 @@ export default function Home() {
                 setSearchTerm("");
                 setFilterProfession("");
                 setFilterCity("");
+                setSelectedBatch(null);
               }}
             >
               Reset
