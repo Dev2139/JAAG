@@ -22,19 +22,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Loader, ArrowLeft, Crop } from "lucide-react";
-import Cropper from "react-easy-crop";
+import { Upload, Loader, ArrowLeft } from "lucide-react";
 
 export default function AddProfile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [showCropDialog, setShowCropDialog] = useState(false);
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -57,65 +51,13 @@ export default function AddProfile() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageData = reader.result as string;
-        setOriginalImage(imageData);
         setImagePreview(imageData);
         setImageFile(file);
-        setShowCropDialog(true);
-        setCrop({ x: 0, y: 0 });
-        setZoom(1);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const processCroppedImage = async () => {
-    if (!originalImage || !croppedAreaPixels) return;
-
-    try {
-      const image = new Image();
-      image.src = originalImage;
-      
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      
-      if (!ctx) throw new Error("Could not get canvas context");
-      
-      canvas.width = croppedAreaPixels.width;
-      canvas.height = croppedAreaPixels.height;
-      
-      image.onload = () => {
-        ctx.drawImage(
-          image,
-          croppedAreaPixels.x,
-          croppedAreaPixels.y,
-          croppedAreaPixels.width,
-          croppedAreaPixels.height,
-          0,
-          0,
-          croppedAreaPixels.width,
-          croppedAreaPixels.height
-        );
-        
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const croppedFile = new File([blob], imageFile?.name || "cropped.jpg", { type: "image/jpeg" });
-            setImageFile(croppedFile);
-            setImagePreview(canvas.toDataURL("image/jpeg"));
-            setShowCropDialog(false);
-            toast({
-              description: "Image cropped successfully",
-            });
-          }
-        }, "image/jpeg", 0.9);
-      };
-    } catch (err) {
-      console.error("Crop error:", err);
-      toast({
-        description: "Failed to crop image",
-        variant: "destructive",
-      });
-    }
-  };
 
   const uploadImageToCloudinary = async (file: File): Promise<string> => {
     const formDataObj = new FormData();
@@ -418,66 +360,7 @@ export default function AddProfile() {
         </Card>
       </div>
 
-      {/* Crop Dialog */}
-      <Dialog open={showCropDialog} onOpenChange={setShowCropDialog}>
-        <DialogContent className="max-w-2xl bg-white border-2 border-black">
-          <DialogHeader>
-            <DialogTitle className="text-black flex items-center gap-2">
-              <Crop className="h-5 w-5" />
-              Crop Your Profile Photo
-            </DialogTitle>
-          </DialogHeader>
 
-          <div className="relative w-full h-96 bg-gray-900 rounded-lg overflow-hidden">
-            {originalImage && (
-              <Cropper
-                image={originalImage}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                cropShape="round"
-                showGrid={true}
-                onCropChange={setCrop}
-                onCropComplete={(croppedArea, croppedAreaPixels) => {
-                  setCroppedAreaPixels(croppedAreaPixels);
-                }}
-                onZoomChange={setZoom}
-              />
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-black font-semibold">Zoom ({zoom.toFixed(1)}x)</Label>
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.1}
-              value={zoom}
-              onChange={(e) => setZoom(parseFloat(e.target.value))}
-              className="w-full"
-            />
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowCropDialog(false)}
-              className="border-2 border-black"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={processCroppedImage}
-              className="bg-black text-white hover:bg-gray-800 border-2 border-black"
-            >
-              <Crop className="h-4 w-4 mr-2" />
-              Apply Crop
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
