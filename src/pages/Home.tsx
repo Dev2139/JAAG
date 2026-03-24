@@ -85,7 +85,7 @@ export default function Home() {
   const fetchAlumni = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from("alumni").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("alumni").select("*").order("id", { ascending: true });
 
       if (error) throw error;
 
