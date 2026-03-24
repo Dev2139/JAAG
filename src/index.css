@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 220 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    --primary: 220 70% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 94%;
+    --secondary-foreground: 220 20% 20%;
+
+    --muted: 210 15% 93%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 145 63% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 220 70% 50%;
+
+    --radius: 0.75rem;
+
+    /* House colors */
+    --house-aravali: 40 96% 53%;
+    --house-nilgiri: 220 70% 50%;
+    --house-shivalik: 145 63% 42%;
+    --house-udaygiri: 0 72% 51%;
+
+    /* Gradient */
+    --gradient-hero: linear-gradient(135deg, hsl(220 70% 50%), hsl(145 63% 42%));
+    --gradient-warm: linear-gradient(135deg, hsl(0 72% 51%), hsl(40 96% 53%));
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 220 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 94%;
+    --sidebar-accent-foreground: 220 20% 20%;
+    --sidebar-border: 214 20% 90%;
+    --sidebar-ring: 220 70% 50%;
+  }
+
+  .dark {
+    --background: 220 20% 7%;
+    --foreground: 210 20% 95%;
+    --card: 220 20% 10%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 20% 10%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 220 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 210 20% 90%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 215 15% 60%;
+    --accent: 145 63% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 220 70% 55%;
+    --sidebar-background: 220 20% 7%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 220 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 15%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 220 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer utilities {
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  .gradient-warm {
+    background: var(--gradient-warm);
+  }
+  .house-aravali {
+    background-color: hsl(var(--house-aravali));
+    color: hsl(220 20% 10%);
+  }
+  .house-nilgiri {
+    background-color: hsl(var(--house-nilgiri));
+    color: white;
+  }
+  .house-shivalik {
+    background-color: hsl(var(--house-shivalik));
+    color: white;
+  }
+  .house-udaygiri {
+    background-color: hsl(var(--house-udaygiri));
+    color: white;
+  }
+}
