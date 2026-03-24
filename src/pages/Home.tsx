@@ -82,6 +82,13 @@ export default function Home() {
     fetchAlumni();
   }, []);
 
+  // Scroll to top when profile detail is opened
+  useEffect(() => {
+    if (selectedAlumni) {
+      window.scrollTo(0, 0);
+    }
+  }, [selectedAlumni]);
+
   const fetchAlumni = async () => {
     try {
       setLoading(true);
