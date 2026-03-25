@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase/client";
 import { mockAlumni } from "@/lib/mockData";
 import { CreatePostCard } from "@/components/CreatePostCard";
 import { StoriesBar } from "@/components/StoriesBar";
@@ -6,10 +8,18 @@ import { SocialPost } from "@/components/SocialPost";
 import { FeedSidebar } from "@/components/FeedSidebar";
 import { useAuthContext } from "@/lib/supabase/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Flame } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Flame, Edit, Lock, Shield } from "lucide-react";
+import ChangeProfilePassword from "@/components/ChangeProfilePassword";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuthContext();
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [posts, setPosts] = useState([
     {
       id: "1",
@@ -79,6 +89,29 @@ const Dashboard = () => {
       viewed: true,
     },
   ]);
+
+  // Fetch user profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        if (!user) return;
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (error) throw error;
+        setUserProfile(data);
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
 
   const onlineAlumni = mockAlumni.slice(0, 8).map((a) => ({
     id: a.id,
@@ -155,8 +188,101 @@ const Dashboard = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="hidden lg:block">
-            <FeedSidebar suggestions={suggestions} onlineAlumni={onlineAlumni} />
+          <div className="hidden lg:block space-y-6">
+            {/* User Profile Card */}
+            {!profileLoading && userProfile && (
+              <Card className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">My Profile</h3>
+                  <Shield className="h-5 w-5 text-blue-600" />
+                </div>
+
+                <div className="space-y-3 mb-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Name</p>
+                    <p className="font-semibold text-gray-900">{userProfile.full_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Profession</p>
+                    <p className="font-semibold text-gray-900">{userProfile.profession}</p>
+                  </div>
+                  {userProfile.contact_number && (
+                    <div>
+                      <p className="text-sm text-gray-600">Contact Number</p>
+                      <p className="font-semibold text-gray-900">
+                        {userProfile.show_contact_number ? userProfile.contact_number : "Hidden from others"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Security & Privacy Section */}
+                <div className="border-t border-blue-200 pt-4 space-y-3">
+                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                    <Checkbox 
+                      id="contact_visibility"
+                      checked={userProfile.show_contact_number ?? true}
+                      disabled
+                      className="mt-1"
+                    />
+                    <Label htmlFor="contact_visibility" className="text-sm cursor-pointer">
+                      <span className="block font-medium text-gray-700">Contact number visible</span>
+                      <span className="text-xs text-gray-500">Others can see your contact number on your profile</span>
+                    </Label>
+                  </div>
+
+                  {userProfile.profile_password && (
+                    <div className="flex items-center gap-2 p-2 bg-green-50 rounded border border-green-200">
+                      <Lock className="h-4 w-4 text-green-600" />
+                      <span className="text-xs text-green-700 font-medium">Profile password is set ✓</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="space-y-2 mt-4">
+                  <Button
+                    onClick={() => navigate("/edit-profile")}
+                    className="w-full gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
+
+                  {userProfile.profile_password && (
+                    <ChangeProfilePassword
+                      userId={userProfile.id}
+                      currentPassword={userProfile.profile_password}
+                    />
+                  )}
+                </div>
+              </Card>
+            )}
+
+            {/* Sidebar Feed */}
+            <FeedSidebar
+              suggestions={useMemo(
+                () =>
+                  mockAlumni.slice(8, 13).map((a) => ({
+                    id: a.id,
+                    name: a.fullName,
+                    house: a.house,
+                    batch: a.batch,
+                  })),
+                []
+              )}
+              onlineAlumni={useMemo(
+                () =>
+                  mockAlumni.slice(0, 8).map((a) => ({
+                    id: a.id,
+                    name: a.fullName,
+                    house: a.house,
+                    batch: a.batch,
+                    isOnline: true,
+                  })),
+                []
+              )}
+            />
           </div>
         </div>
       </div>

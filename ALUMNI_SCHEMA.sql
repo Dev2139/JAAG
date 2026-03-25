@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   email TEXT,
   whatsapp TEXT,
   linkedin_url TEXT,
+  profile_password VARCHAR(255),
+  show_contact_number BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

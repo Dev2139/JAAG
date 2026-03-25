@@ -30,6 +30,9 @@ const Register = () => {
     companyName: "",
     currentCity: "",
     bio: "",
+    profilePassword: "",
+    contactNumber: "",
+    showContactNumber: true,
   });
   const [helpOffered, setHelpOffered] = useState<HelpOffered[]>([]);
 
@@ -50,6 +53,12 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!form.profilePassword) {
+      toast.error("Profile password is required");
+      return;
+    }
+    
     setLoading(true);
     try {
       // Create auth user
@@ -59,14 +68,17 @@ const Register = () => {
       await insert("profiles", {
         full_name: form.fullName,
         email: form.email,
-        batch: form.batch,
+        batch_year: form.batch,
         house: form.house,
         migration_jnv: form.migrationJnv,
         profession: form.profession,
         company_name: form.companyName,
         current_city: form.currentCity,
         bio: form.bio,
-        help_offered: helpOffered.join(","),
+        help_offered: helpOffered,
+        profile_password: form.profilePassword,
+        contact_number: form.contactNumber,
+        show_contact_number: form.showContactNumber === "true" || form.showContactNumber === true,
       });
 
       toast.success("Profile created! Please verify your email.");
@@ -323,6 +335,52 @@ const Register = () => {
                   rows={3}
                   disabled={loading}
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="contactNumber" className="block text-sm font-medium text-gray-900 mb-2">
+                  Contact Number (Optional)
+                </Label>
+                <Input
+                  id="contactNumber"
+                  type="tel"
+                  placeholder="e.g. +91 98765 43210"
+                  value={form.contactNumber}
+                  onChange={(e) => update("contactNumber", e.target.value)}
+                  className="h-12 rounded-lg"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                <Checkbox
+                  id="showContactNumber"
+                  checked={form.showContactNumber}
+                  onCheckedChange={(checked) => update("showContactNumber", checked ? "true" : "false")}
+                  disabled={loading}
+                />
+                <Label htmlFor="showContactNumber" className="text-sm cursor-pointer font-normal text-gray-700">
+                  Let others see my contact number
+                </Label>
+              </div>
+
+              <div>
+                <Label htmlFor="profilePassword" className="block text-sm font-medium text-gray-900 mb-2">
+                  Profile Password * <span className="text-xs text-gray-500">(For future profile updates)</span>
+                </Label>
+                <Input
+                  id="profilePassword"
+                  type="password"
+                  placeholder="Create a password to update your profile later"
+                  value={form.profilePassword}
+                  onChange={(e) => update("profilePassword", e.target.value)}
+                  className="h-12 rounded-lg"
+                  disabled={loading}
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  You'll need this password to update your profile or change your settings in the future
+                </p>
               </div>
 
               <div className="flex gap-2 pt-4">

@@ -18,6 +18,9 @@ export interface Profile {
   email?: string;
   whatsapp?: string;
   linkedin_url?: string;
+  profile_password?: string;
+  show_contact_number: boolean;
+  contact_number?: string;
   created_at: string;
   updated_at: string;
 }

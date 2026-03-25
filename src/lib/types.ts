@@ -27,6 +27,8 @@ export interface Profile {
   profile_image_url: string | null;
   help_offered: HelpOffered[];
   is_approved: boolean;
+  profile_password?: string;
+  show_contact_number: boolean;
   created_at: string;
   updated_at: string;
 }

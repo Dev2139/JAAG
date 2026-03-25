@@ -9,6 +9,8 @@ import { PasscodeModal } from "@/components/PasscodeModal";
 // Pages
 import Home from "@/pages/Home";
 import AddProfile from "@/pages/AddProfile";
+import Dashboard from "@/pages/Dashboard";
+import EditProfile from "@/pages/EditProfile";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,8 +40,14 @@ const AppContent = () => {
           {/* Home Page - Alumni Directory */}
           <Route path="/" element={<Home />} />
 
+          {/* Dashboard */}
+          <Route path="/dashboard" element={<Dashboard />} />
+
           {/* Add Profile Page */}
           <Route path="/add-profile" element={<AddProfile />} />
+
+          {/* Edit Profile Page */}
+          <Route path="/edit-profile" element={<EditProfile />} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   profile_image_url TEXT,
   help_offered TEXT[] DEFAULT '{}',
   is_approved BOOLEAN DEFAULT FALSE,
+  profile_password VARCHAR(255),
+  show_contact_number BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

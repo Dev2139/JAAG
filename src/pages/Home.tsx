@@ -16,10 +16,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader, Instagram, Linkedin, MessageCircle, Send } from "lucide-react";
+import { Loader, Instagram, Linkedin, MessageCircle, Send, Edit, Lock } from "lucide-react";
 
 interface Alumni {
   id: string;
+  user_id: string;
   full_name: string;
   batch_year: number;
   house: string;
@@ -34,6 +35,8 @@ interface Alumni {
   linkedin_url: string | null;
   whatsapp_number: string | null;
   created_at: string;
+  profile_password?: string;
+  show_contact_number: boolean;
 }
 
 // House color mapping
@@ -78,11 +81,130 @@ export default function Home() {
   const [cities, setCities] = useState<string[]>([]);
   const [professions, setProfessions] = useState<string[]>([]);
   const [batchYears, setBatchYears] = useState<number[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState<Alumni | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   // Fetch alumni on component mount
   useEffect(() => {
     fetchAlumni();
+    getCurrentUser();
   }, []);
+
+  // Get current user
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    } catch (err) {
+      console.error("Error fetching current user:", err);
+    }
+  };
+
+  // Start editing profile
+  const handleStartEdit = () => {
+    if (selectedAlumni) {
+      setEditFormData(selectedAlumni);
+      setShowPasswordModal(true);
+      setPasswordInput("");
+      setPasswordError("");
+    }
+  };
+
+  // Verify password and enable editing
+  const handleVerifyPassword = () => {
+    if (!selectedAlumni || !editFormData) return;
+    
+    if (passwordInput === selectedAlumni.profile_password) {
+      setShowPasswordModal(false);
+      setIsEditing(true);
+      setPasswordInput("");
+      setPasswordError("");
+    } else {
+      setPasswordError("Incorrect password");
+      setPasswordInput("");
+    }
+  };
+
+  // Save profile changes
+  const handleSaveProfile = async () => {
+    if (!selectedAlumni || !editFormData) return;
+
+    try {
+      const { error } = await supabase
+        .from("alumni")
+        .update({
+          profession: editFormData.profession,
+          company_name: editFormData.company_name,
+          current_city: editFormData.current_city,
+          phone: editFormData.phone,
+          whatsapp_number: editFormData.whatsapp_number,
+          bio: editFormData.bio,
+          instagram_url: editFormData.instagram_url,
+          linkedin_url: editFormData.linkedin_url,
+          show_contact_number: editFormData.show_contact_number,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", selectedAlumni.id);
+
+      if (error) throw error;
+
+      // Update local state
+      const updatedAlumni = {
+        ...selectedAlumni,
+        ...editFormData,
+      };
+      setSelectedAlumni(updatedAlumni);
+      setAlumni(alumni.map(a => a.id === selectedAlumni.id ? updatedAlumni : a));
+      
+      setIsEditing(false);
+      setEditFormData(null);
+      toast({ title: "Success", description: "Profile updated successfully" });
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditFormData(null);
+    setShowPasswordModal(false);
+    setPasswordInput("");
+    setPasswordError("");
+  };
+
+  // Delete profile
+  const handleDeleteProfile = async () => {
+    if (!selectedAlumni) return;
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete this profile? This action cannot be undone.\n\nProfile: ${selectedAlumni.full_name}`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from("alumni")
+        .delete()
+        .eq("id", selectedAlumni.id);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setAlumni(alumni.filter(a => a.id !== selectedAlumni.id));
+      setSelectedAlumni(null);
+      toast({ title: "Success", description: "Profile deleted successfully" });
+    } catch (err) {
+      console.error("Error deleting profile:", err);
+      toast({ title: "Error", description: "Failed to delete profile", variant: "destructive" });
+    }
+  };
 
   // Scroll to top when profile detail is opened
   useEffect(() => {
@@ -152,9 +274,40 @@ export default function Home() {
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{selectedAlumni.full_name}</h1>
 
                   <div className="space-y-2 mb-4">
-                    <p className="text-lg font-semibold text-black">{selectedAlumni.profession}</p>
-                    <p className="text-gray-700">{selectedAlumni.company_name}</p>
-                    <p className="text-sm text-gray-600">📍 {selectedAlumni.current_city}</p>
+                    {isEditing && editFormData ? (
+                      <>
+                        <div>
+                          <Label className="text-sm">Profession</Label>
+                          <Input
+                            value={editFormData.profession}
+                            onChange={(e) => setEditFormData({ ...editFormData, profession: e.target.value })}
+                            placeholder="e.g., Software Engineer"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Company</Label>
+                          <Input
+                            value={editFormData.company_name}
+                            onChange={(e) => setEditFormData({ ...editFormData, company_name: e.target.value })}
+                            placeholder="Company name"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">City</Label>
+                          <Input
+                            value={editFormData.current_city}
+                            onChange={(e) => setEditFormData({ ...editFormData, current_city: e.target.value })}
+                            placeholder="Current city"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-semibold text-black">{selectedAlumni.profession}</p>
+                        <p className="text-gray-700">{selectedAlumni.company_name}</p>
+                        <p className="text-sm text-gray-600">📍 {selectedAlumni.current_city}</p>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap gap-2 mb-4">
@@ -162,22 +315,69 @@ export default function Home() {
                     <Badge variant="outline">Batch {selectedAlumni.batch_year}</Badge>
                   </div>
 
-                  <div className="space-y-2">
-                    {selectedAlumni.email && (
-                      <p className="text-sm">
-                        <a href={`mailto:${selectedAlumni.email}`} className="text-black font-semibold hover:underline">
-                          ✉️ {selectedAlumni.email}
-                        </a>
-                      </p>
-                    )}
-                    {selectedAlumni.phone && (
-                      <p className="text-sm">
-                        <a href={`tel:${selectedAlumni.phone}`} className="text-black font-semibold hover:underline">
-                          📱 {selectedAlumni.phone}
-                        </a>
-                      </p>
-                    )}
-                  </div>
+                  {isEditing && editFormData ? (
+                    <div className="bg-blue-50 p-4 rounded-lg space-y-3 mb-4">
+                      <div>
+                        <Label className="text-sm">Phone / WhatsApp</Label>
+                        <Input
+                          value={editFormData.phone}
+                          onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                          placeholder="+91 XXXXX XXXXX"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">WhatsApp Number</Label>
+                        <Input
+                          value={editFormData.whatsapp_number}
+                          onChange={(e) => setEditFormData({ ...editFormData, whatsapp_number: e.target.value })}
+                          placeholder="For WhatsApp link"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">Instagram URL</Label>
+                        <Input
+                          value={editFormData.instagram_url}
+                          onChange={(e) => setEditFormData({ ...editFormData, instagram_url: e.target.value })}
+                          placeholder="https://instagram.com/..."
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">LinkedIn URL</Label>
+                        <Input
+                          value={editFormData.linkedin_url}
+                          onChange={(e) => setEditFormData({ ...editFormData, linkedin_url: e.target.value })}
+                          placeholder="https://linkedin.com/in/..."
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="show_phone"
+                          checked={editFormData.show_contact_number}
+                          onChange={(e) => setEditFormData({ ...editFormData, show_contact_number: e.target.checked })}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="show_phone" className="text-sm cursor-pointer">Let others see my phone number</Label>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 mb-4">
+                      {selectedAlumni.email && (
+                        <p className="text-sm">
+                          <a href={`mailto:${selectedAlumni.email}`} className="text-black font-semibold hover:underline">
+                            ✉️ {selectedAlumni.email}
+                          </a>
+                        </p>
+                      )}
+                      {selectedAlumni.show_contact_number && selectedAlumni.phone && (
+                        <p className="text-sm">
+                          <a href={`tel:${selectedAlumni.phone}`} className="text-black font-semibold hover:underline">
+                            📱 {selectedAlumni.phone}
+                          </a>
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Social Links */}
                   <div className="flex gap-3 mb-6">
@@ -227,6 +427,50 @@ export default function Home() {
                     <Send className="h-4 w-4" />
                     Connect via Email
                   </Button>
+
+                  {/* Edit Profile Button - Password protected, always visible */}
+                  {!isEditing && (
+                    <div className="flex gap-3 mt-4">
+                      <Button
+                        onClick={handleStartEdit}
+                        className="gap-2 flex-1 bg-blue-600 text-white hover:bg-blue-700 border-2 border-blue-700"
+                        size="lg"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit Profile
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Save/Cancel Buttons when editing - Only show when in edit mode */}
+                  {isEditing && (
+                    <div className="space-y-3 mt-4">
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={handleSaveProfile}
+                          className="gap-2 flex-1 bg-green-600 text-white hover:bg-green-700 border-2 border-green-700"
+                          size="lg"
+                        >
+                          ✓ Save Changes
+                        </Button>
+                        <Button
+                          onClick={handleCancelEdit}
+                          variant="outline"
+                          className="gap-2 flex-1 border-2 border-gray-900"
+                          size="lg"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={handleDeleteProfile}
+                        className="w-full gap-2 bg-red-600 text-white hover:bg-red-700 border-2 border-red-700"
+                        size="lg"
+                      >
+                        🗑️ Delete Profile
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -250,10 +494,60 @@ export default function Home() {
 
               </div>
 
-              {selectedAlumni.bio && (
+              {(selectedAlumni.bio || isEditing) && (
                 <div className="mt-8">
                   <h2 className="text-xl font-bold text-gray-900 mb-4">Bio</h2>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedAlumni.bio}</p>
+                  {isEditing && editFormData ? (
+                    <Textarea
+                      value={editFormData.bio}
+                      onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
+                      placeholder="Tell us about yourself..."
+                      className="min-h-32"
+                    />
+                  ) : (
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedAlumni.bio}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Password Verification Modal */}
+              {showPasswordModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <Card className="w-full max-w-md p-6 mx-4">
+                    <h2 className="text-xl font-bold mb-4">Verify Password</h2>
+                    <p className="text-sm text-gray-600 mb-4">Enter your profile password to edit your profile</p>
+                    <Input
+                      type="password"
+                      placeholder="Enter your profile password"
+                      value={passwordInput}
+                      onChange={(e) => {
+                        setPasswordInput(e.target.value);
+                        setPasswordError("");
+                      }}
+                      onKeyPress={(e) => e.key === "Enter" && handleVerifyPassword()}
+                      className="mb-2"
+                    />
+                    {passwordError && <p className="text-red-600 text-sm mb-4">{passwordError}</p>}
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleVerifyPassword}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      >
+                        Verify
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setShowPasswordModal(false);
+                          setPasswordInput("");
+                          setPasswordError("");
+                        }}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </Card>
                 </div>
               )}
             </div>

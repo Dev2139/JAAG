@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -22,7 +23,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Loader, ArrowLeft } from "lucide-react";
+import { Upload, Loader, ArrowLeft, Lock, Shield } from "lucide-react";
 
 export default function AddProfile() {
   const navigate = useNavigate();
@@ -43,6 +44,8 @@ export default function AddProfile() {
     instagram_url: "",
     linkedin_url: "",
     whatsapp_number: "",
+    show_contact_number: true,
+    profile_password: "",
   });
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,6 +97,16 @@ export default function AddProfile() {
         return;
       }
 
+      if (!formData.profile_password) {
+        toast({
+          title: "Error",
+          description: "Profile password is required for future profile updates",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       let imageUrl = null;
 
       // Upload image if selected
@@ -117,6 +130,8 @@ export default function AddProfile() {
           instagram_url: formData.instagram_url || null,
           linkedin_url: formData.linkedin_url || null,
           whatsapp_number: formData.whatsapp_number || null,
+          show_contact_number: formData.show_contact_number,
+          profile_password: formData.profile_password,
         },
       ]);
 
@@ -256,6 +271,56 @@ export default function AddProfile() {
                 placeholder="+91 XXXXX XXXXX"
                 disabled={loading}
               />
+            </div>
+
+            {/* Security & Privacy Section */}
+            <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-300">
+              <div className="flex items-center gap-2 mb-4">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <Label className="text-base font-semibold text-blue-900 m-0">Security & Privacy Settings</Label>
+              </div>
+
+              <div className="space-y-4">
+                {/* Contact Visibility Toggle */}
+                <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-blue-200">
+                  <Checkbox
+                    id="show_contact"
+                    checked={formData.show_contact_number}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, show_contact_number: checked as boolean })
+                    }
+                    disabled={loading}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="show_contact" className="text-sm cursor-pointer font-medium text-gray-700 m-0">
+                      Let others see my phone number
+                    </Label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Other alumni will be able to see your phone number from above if you enable this
+                    </p>
+                  </div>
+                </div>
+
+                {/* Profile Password */}
+                <div>
+                  <Label className="text-sm font-medium">
+                    Profile Password * <span className="text-xs text-blue-600">(Required for future updates)</span>
+                  </Label>
+                  <Input
+                    type="password"
+                    value={formData.profile_password}
+                    onChange={(e) => setFormData({ ...formData, profile_password: e.target.value })}
+                    placeholder="Create a secure password to update your profile later"
+                    disabled={loading}
+                    required
+                    className="border-2"
+                  />
+                  <p className="text-xs text-gray-600 mt-2">
+                    ⚠️ You'll need this password to edit or update your profile. Make it secure and remember it!
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Career/Education Info */}
