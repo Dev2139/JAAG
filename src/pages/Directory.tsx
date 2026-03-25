@@ -68,10 +68,16 @@ export default function Directory() {
   };
 
   const filteredProfiles = profiles.filter((profile) => {
+    const lowerSearch = searchTerm.toLowerCase();
+    // If search is empty, match all
     const matchesSearch =
-      profile.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profile.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profile.bio.toLowerCase().includes(searchTerm.toLowerCase());
+      !lowerSearch ||
+      profile.full_name.toLowerCase().includes(lowerSearch) ||
+      profile.company_name.toLowerCase().includes(lowerSearch) ||
+      profile.profession.toLowerCase().includes(lowerSearch) ||
+      profile.batch_year.toString().includes(lowerSearch) ||
+      profile.bio.toLowerCase().includes(lowerSearch) ||
+      (profile.house && profile.house.toLowerCase().includes(lowerSearch));
 
     const matchesProfession =
       !filterProfession || profile.profession === filterProfession;

@@ -242,9 +242,15 @@ export default function Home() {
   };
 
   const filteredAlumni = alumni.filter((item) => {
+    const lowerSearch = searchTerm.toLowerCase();
     const matchesSearch =
-      item.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.company_name.toLowerCase().includes(searchTerm.toLowerCase());
+      !lowerSearch ||
+      item.full_name.toLowerCase().includes(lowerSearch) ||
+      item.company_name.toLowerCase().includes(lowerSearch) ||
+      item.house.toLowerCase().includes(lowerSearch) ||
+      item.batch_year.toString().includes(lowerSearch) ||
+      item.profession.toLowerCase().includes(lowerSearch) ||
+      (item.bio && item.bio.toLowerCase().includes(lowerSearch));
 
     const matchesCity = !filterCity || item.current_city === filterCity;
     const matchesProfession = !filterProfession || item.profession === filterProfession;
