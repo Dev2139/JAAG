@@ -144,6 +144,7 @@ export default function Home() {
           current_city: editFormData.current_city,
           bio: editFormData.bio,
           show_contact_number: editFormData.show_contact_number,
+          show_whatsapp: editFormData.show_whatsapp,
           phone: editFormData.phone,
           facebook_url: editFormData.facebook_url,
           whatsapp_number: editFormData.whatsapp_number,
@@ -219,7 +220,7 @@ export default function Home() {
   const fetchAlumni = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: true });
+      const { data, error } = await supabase.from("profiles").select("*").order("batch_year", { ascending: true });
 
       if (error) throw error;
 
@@ -371,6 +372,20 @@ export default function Home() {
                         />
                         <Label htmlFor="show_phone" className="text-sm cursor-pointer">Let others see my phone number</Label>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="show_whatsapp"
+                          checked={editFormData.show_whatsapp}
+                          onChange={(e) => setEditFormData({ ...editFormData, show_whatsapp: e.target.checked })}
+                          disabled={!editFormData.show_contact_number}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="show_whatsapp" className="text-sm cursor-pointer">Let others see my WhatsApp details</Label>
+                        {!editFormData.show_contact_number && (
+                          <p className="text-xs text-gray-500 ml-2">(Enable phone visibility first)</p>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-2 mb-4">
@@ -423,7 +438,7 @@ export default function Home() {
                         <Linkedin className="h-5 w-5" />
                       </a>
                     )}
-                    {selectedAlumni.whatsapp_number && (
+                    {selectedAlumni.show_contact_number && selectedAlumni.show_whatsapp && selectedAlumni.whatsapp_number && (
                       <a
                         href={`https://wa.me/${selectedAlumni.whatsapp_number}`}
                         target="_blank"
@@ -753,7 +768,7 @@ export default function Home() {
                     {/* Social Links - Bottom */}
                     <div className="mt-auto pt-4 border-t-2" style={{ borderColor: colors.border }}>
                       <div className="flex gap-3 justify-center mb-3">
-                        {item.whatsapp_number && (
+                      {item.show_contact_number && item.show_whatsapp && item.whatsapp_number && (
                           <a
                             href={`https://wa.me/${item.whatsapp_number}`}
                             target="_blank"
