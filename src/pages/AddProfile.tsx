@@ -43,8 +43,10 @@ export default function AddProfile() {
     bio: "",
     instagram_url: "",
     linkedin_url: "",
+    facebook_url: "",
     whatsapp_number: "",
     show_contact_number: true,
+    show_whatsapp: true,
     profile_password: "",
   });
 
@@ -97,6 +99,17 @@ export default function AddProfile() {
         return;
       }
 
+      // Batch year validation - minimum 2006
+      if (formData.batch_year < 2006) {
+        toast({
+          title: "Error",
+          description: "Batch year must be 2006 or later",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       if (!formData.profile_password) {
         toast({
           title: "Error",
@@ -114,9 +127,13 @@ export default function AddProfile() {
         imageUrl = await uploadImageToCloudinary(imageFile);
       }
 
+      // Generate a UUID for the profile ID
+      const profileId = crypto.randomUUID();
+
       // Insert into database
-      const { error } = await supabase.from("alumni").insert([
+      const { error } = await supabase.from("profiles").insert([
         {
+          id: profileId,
           full_name: formData.full_name,
           batch_year: formData.batch_year,
           house: formData.house,
@@ -124,14 +141,16 @@ export default function AddProfile() {
           company_name: formData.company_name,
           current_city: formData.current_city,
           email: formData.email || null,
-          phone: formData.phone || null,
           bio: formData.bio || null,
           profile_image_url: imageUrl,
-          instagram_url: formData.instagram_url || null,
-          linkedin_url: formData.linkedin_url || null,
-          whatsapp_number: formData.whatsapp_number || null,
           show_contact_number: formData.show_contact_number,
           profile_password: formData.profile_password,
+          phone: formData.phone || null,
+          instagram_url: formData.instagram_url || null,
+          linkedin_url: formData.linkedin_url || null,
+          facebook_url: formData.facebook_url || null,
+          whatsapp_number: formData.whatsapp_number || null,
+          show_whatsapp: formData.show_whatsapp,
         },
       ]);
 
@@ -224,13 +243,17 @@ export default function AddProfile() {
                 />
               </div>
               <div>
-                <Label>Batch Year *</Label>
+                <Label>Batch Year * (Minimum 2006)</Label>
                 <Input
                   type="number"
-                  value={formData.batch_year}
-                  onChange={(e) => setFormData({ ...formData, batch_year: parseInt(e.target.value) })}
+                  value={formData.batch_year || ""}
+                  onChange={(e) => setFormData({ ...formData, batch_year: e.target.value ? parseInt(e.target.value) : 0 })}
+                  min="2006"
                   disabled={loading}
                 />
+                {formData.batch_year < 2006 && formData.batch_year > 0 && (
+                  <p className="text-xs text-red-600 mt-1">Batch year must be 2006 or later</p>
+                )}
               </div>
             </div>
 
@@ -374,6 +397,16 @@ export default function AddProfile() {
 
               <div className="space-y-3">
                 <div>
+                  <Label className="text-sm">Facebook</Label>
+                  <Input
+                    value={formData.facebook_url}
+                    onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
+                    placeholder="https://facebook.com/yourprofile"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div>
                   <Label className="text-sm">Instagram</Label>
                   <Input
                     value={formData.instagram_url}
@@ -401,6 +434,29 @@ export default function AddProfile() {
                     placeholder="91XXXXXXXXXX (with country code)"
                     disabled={loading}
                   />
+                </div>
+
+                {/* WhatsApp Visibility Toggle */}
+                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 mt-4">
+                  <Checkbox
+                    id="show_whatsapp"
+                    checked={formData.show_whatsapp}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, show_whatsapp: checked as boolean })
+                    }
+                    disabled={loading || !formData.show_contact_number}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="show_whatsapp" className="text-sm cursor-pointer font-medium text-gray-700 m-0">
+                      Let others see my WhatsApp details
+                    </Label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {!formData.show_contact_number 
+                        ? "Enable 'Let others see my phone number' to show WhatsApp details"
+                        : "Other alumni will be able to see your WhatsApp number if you enable this"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

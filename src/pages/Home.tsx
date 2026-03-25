@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader, Instagram, Linkedin, MessageCircle, Send, Edit, Lock } from "lucide-react";
+import { Loader, Instagram, Linkedin, MessageCircle, Send, Edit, Lock, Facebook } from "lucide-react";
 
 interface Alumni {
   id: string;
@@ -31,12 +31,14 @@ interface Alumni {
   profile_image_url: string | null;
   email: string;
   phone: string;
+  facebook_url?: string | null;
   instagram_url: string | null;
   linkedin_url: string | null;
   whatsapp_number: string | null;
   created_at: string;
   profile_password?: string;
   show_contact_number: boolean;
+  show_whatsapp?: boolean;
 }
 
 // House color mapping
@@ -135,17 +137,18 @@ export default function Home() {
 
     try {
       const { error } = await supabase
-        .from("alumni")
+        .from("profiles")
         .update({
           profession: editFormData.profession,
           company_name: editFormData.company_name,
           current_city: editFormData.current_city,
-          phone: editFormData.phone,
-          whatsapp_number: editFormData.whatsapp_number,
           bio: editFormData.bio,
+          show_contact_number: editFormData.show_contact_number,
+          phone: editFormData.phone,
+          facebook_url: editFormData.facebook_url,
+          whatsapp_number: editFormData.whatsapp_number,
           instagram_url: editFormData.instagram_url,
           linkedin_url: editFormData.linkedin_url,
-          show_contact_number: editFormData.show_contact_number,
           updated_at: new Date().toISOString(),
         })
         .eq("id", selectedAlumni.id);
@@ -190,7 +193,7 @@ export default function Home() {
 
     try {
       const { error } = await supabase
-        .from("alumni")
+        .from("profiles")
         .delete()
         .eq("id", selectedAlumni.id);
 
@@ -216,7 +219,7 @@ export default function Home() {
   const fetchAlumni = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from("alumni").select("*").order("created_at", { ascending: true });
+      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: true });
 
       if (error) throw error;
 
@@ -327,6 +330,14 @@ export default function Home() {
                         />
                       </div>
                       <div>
+                        <Label className="text-sm">Facebook URL</Label>
+                        <Input
+                          value={editFormData.facebook_url || ""}
+                          onChange={(e) => setEditFormData({ ...editFormData, facebook_url: e.target.value })}
+                          placeholder="https://facebook.com/yourprofile"
+                        />
+                      </div>
+                      <div>
                         <Label className="text-sm">WhatsApp Number</Label>
                         <Input
                           value={editFormData.whatsapp_number}
@@ -382,6 +393,16 @@ export default function Home() {
 
                   {/* Social Links */}
                   <div className="flex gap-3 mb-6">
+                    {selectedAlumni.facebook_url && (
+                      <a
+                        href={selectedAlumni.facebook_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
+                      >
+                        <Facebook className="h-5 w-5" />
+                      </a>
+                    )}
                     {selectedAlumni.instagram_url && (
                       <a
                         href={selectedAlumni.instagram_url}

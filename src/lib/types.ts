@@ -29,6 +29,8 @@ export interface Profile {
   is_approved: boolean;
   profile_password?: string;
   show_contact_number: boolean;
+  facebook_url?: string;
+  show_whatsapp: boolean;
   created_at: string;
   updated_at: string;
 }

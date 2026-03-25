@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,11 +25,18 @@ interface Profile {
   profile_image_url: string | null;
   help_offered: string[];
   show_contact_number: boolean;
+  phone?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  linkedin_url?: string;
+  whatsapp_number?: string;
+  show_whatsapp: boolean;
   profile_password: string;
 }
 
 export default function EditProfile() {
   const navigate = useNavigate();
+  const { id: profileId } = useParams<{ id: string }>();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -39,29 +46,40 @@ export default function EditProfile() {
 
   const [formData, setFormData] = useState({
     full_name: "",
+    batch_year: 0,
     profession: "",
     company_name: "",
     current_city: "",
     bio: "",
     migration_jnv: "",
     show_contact_number: true,
+    phone: "",
+    facebook_url: "",
+    instagram_url: "",
+    linkedin_url: "",
+    whatsapp_number: "",
+    show_whatsapp: true,
   });
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const { data: user } = await supabase.auth.getUser();
 
-        if (!user.user) {
-          navigate("/login");
+        if (!profileId) {
+          toast({
+            title: "Error",
+            description: "Profile ID not found",
+            variant: "destructive",
+          });
+          navigate("/dashboard");
           return;
         }
 
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", user.user.id)
+          .eq("id", profileId)
           .single();
 
         if (error) throw error;
@@ -69,12 +87,19 @@ export default function EditProfile() {
         setProfile(data);
         setFormData({
           full_name: data.full_name || "",
+          batch_year: data.batch_year || 0,
           profession: data.profession || "",
           company_name: data.company_name || "",
           current_city: data.current_city || "",
           bio: data.bio || "",
           migration_jnv: data.migration_jnv || "",
           show_contact_number: data.show_contact_number ?? true,
+          phone: data.phone || "",
+          facebook_url: data.facebook_url || "",
+          instagram_url: data.instagram_url || "",
+          linkedin_url: data.linkedin_url || "",
+          whatsapp_number: data.whatsapp_number || "",
+          show_whatsapp: data.show_whatsapp ?? true,
         });
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -90,7 +115,7 @@ export default function EditProfile() {
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, [profileId, navigate]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -101,6 +126,17 @@ export default function EditProfile() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate batch year
+    if (formData.batch_year < 2006) {
+      toast({
+        title: "Error",
+        description: "Batch year must be 2006 or later",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setShowPasswordDialog(true);
     setEnteredPassword("");
     setPasswordError("");
@@ -109,6 +145,12 @@ export default function EditProfile() {
   const verifyAndUpdate = async () => {
     if (!enteredPassword) {
       setPasswordError("Please enter your profile password");
+      return;
+    }
+
+    // Validate batch year
+    if (formData.batch_year < 2006) {
+      setPasswordError("Batch year must be 2006 or later");
       return;
     }
 
@@ -123,12 +165,19 @@ export default function EditProfile() {
         .from("profiles")
         .update({
           full_name: formData.full_name,
+          batch_year: formData.batch_year,
           profession: formData.profession,
           company_name: formData.company_name,
           current_city: formData.current_city,
           bio: formData.bio,
           migration_jnv: formData.migration_jnv,
           show_contact_number: formData.show_contact_number,
+          phone: formData.phone,
+          facebook_url: formData.facebook_url,
+          instagram_url: formData.instagram_url,
+          linkedin_url: formData.linkedin_url,
+          whatsapp_number: formData.whatsapp_number,
+          show_whatsapp: formData.show_whatsapp,
           updated_at: new Date().toISOString(),
         })
         .eq("id", profile.id);
@@ -202,6 +251,24 @@ export default function EditProfile() {
               />
             </div>
 
+            {/* Batch Year */}
+            <div>
+              <Label htmlFor="batch_year" className="block text-sm font-medium text-gray-900 mb-2">
+                Batch Year (Minimum 2006)
+              </Label>
+              <Input
+                id="batch_year"
+                type="number"
+                value={formData.batch_year || ""}
+                onChange={(e) => handleInputChange("batch_year", e.target.value ? parseInt(e.target.value) : 0)}
+                className="h-10 rounded-lg"
+                min="2006"
+              />
+              {formData.batch_year < 2006 && formData.batch_year > 0 && (
+                <p className="text-xs text-red-600 mt-1">Batch year must be 2006 or later</p>
+              )}
+            </div>
+
             {/* Profession */}
             <div>
               <Label htmlFor="profession" className="block text-sm font-medium text-gray-900 mb-2">
@@ -254,6 +321,76 @@ export default function EditProfile() {
               />
             </div>
 
+            {/* Social Media Links */}
+            <div className="space-y-4 p-4 bg-blue-50 rounded-lg">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Social Media & Contact</h3>
+              
+              <div>
+                <Label htmlFor="phone" className="block text-sm font-medium text-gray-900 mb-2">
+                  Phone / WhatsApp Number
+                </Label>
+                <Input
+                  id="phone"
+                  value={formData.phone || ""}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  placeholder="+91 XXXXX XXXXX"
+                  className="h-10 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="facebook_url" className="block text-sm font-medium text-gray-900 mb-2">
+                  Facebook URL
+                </Label>
+                <Input
+                  id="facebook_url"
+                  value={formData.facebook_url}
+                  onChange={(e) => handleInputChange("facebook_url", e.target.value)}
+                  placeholder="https://facebook.com/yourprofile"
+                  className="h-10 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="instagram_url" className="block text-sm font-medium text-gray-900 mb-2">
+                  Instagram URL
+                </Label>
+                <Input
+                  id="instagram_url"
+                  value={formData.instagram_url || ""}
+                  onChange={(e) => handleInputChange("instagram_url", e.target.value)}
+                  placeholder="https://instagram.com/yourprofile"
+                  className="h-10 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="linkedin_url" className="block text-sm font-medium text-gray-900 mb-2">
+                  LinkedIn URL
+                </Label>
+                <Input
+                  id="linkedin_url"
+                  value={formData.linkedin_url || ""}
+                  onChange={(e) => handleInputChange("linkedin_url", e.target.value)}
+                  placeholder="https://linkedin.com/in/yourprofile"
+                  className="h-10 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="whatsapp_number" className="block text-sm font-medium text-gray-900 mb-2">
+                  WhatsApp Number
+                </Label>
+                <Input
+                  id="whatsapp_number"
+                  value={formData.whatsapp_number || ""}
+                  onChange={(e) => handleInputChange("whatsapp_number", e.target.value)}
+                  placeholder="+91 XXXXX XXXXX"
+                  className="h-10 rounded-lg"
+                />
+              </div>
+            </div>
+
             {/* Contact Visibility Toggle */}
             <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
               <Checkbox
@@ -266,6 +403,28 @@ export default function EditProfile() {
               <Label htmlFor="show_contact" className="text-sm cursor-pointer font-normal text-gray-700">
                 Let others see my phone number
               </Label>
+            </div>
+
+            {/* WhatsApp Visibility Toggle */}
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg opacity-50" style={{ opacity: !formData.show_contact_number ? 0.5 : 1 }}>
+              <Checkbox
+                id="show_whatsapp"
+                checked={formData.show_whatsapp}
+                onCheckedChange={(checked) =>
+                  handleInputChange("show_whatsapp", checked)
+                }
+                disabled={!formData.show_contact_number}
+              />
+              <div className="flex-1">
+                <Label htmlFor="show_whatsapp" className="text-sm cursor-pointer font-normal text-gray-700">
+                  Let others see my WhatsApp details
+                </Label>
+                <p className="text-xs text-gray-500 mt-1">
+                  {!formData.show_contact_number 
+                    ? "Enable 'Let others see my phone number' to show WhatsApp details"
+                    : "Other alumni will be able to see your WhatsApp number if enabled"}
+                </p>
+              </div>
             </div>
 
             {/* Bio */}

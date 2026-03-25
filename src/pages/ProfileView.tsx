@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Loader, ArrowLeft, Mail } from "lucide-react";
+import { Loader, ArrowLeft, Mail, Facebook, Instagram, Linkedin, MessageCircle, Phone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface Profile {
@@ -21,6 +21,13 @@ interface Profile {
   bio: string;
   email: string;
   migration_jnv: string;
+  phone?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  linkedin_url?: string;
+  whatsapp_number?: string;
+  show_contact_number: boolean;
+  show_whatsapp: boolean;
 }
 
 export default function ProfileView() {
@@ -220,6 +227,92 @@ export default function ProfileView() {
                 </p>
               </div>
             )}
+
+            {/* Social Media Section */}
+            <div className="mt-8 pt-8 border-t">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Connect</h2>
+              <div className="space-y-4">
+                {/* Facebook */}
+                {profile.facebook_url && (
+                  <div className="flex items-center gap-3">
+                    <Facebook className="h-5 w-5 text-blue-600" />
+                    <a
+                      href={profile.facebook_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Facebook
+                    </a>
+                  </div>
+                )}
+
+                {/* Instagram */}
+                {profile.instagram_url && (
+                  <div className="flex items-center gap-3">
+                    <Instagram className="h-5 w-5 text-pink-600" />
+                    <a
+                      href={profile.instagram_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Instagram
+                    </a>
+                  </div>
+                )}
+
+                {/* LinkedIn */}
+                {profile.linkedin_url && (
+                  <div className="flex items-center gap-3">
+                    <Linkedin className="h-5 w-5 text-blue-700" />
+                    <a
+                      href={profile.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      LinkedIn
+                    </a>
+                  </div>
+                )}
+
+                {/* Phone */}
+                {profile.show_contact_number && profile.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-green-600" />
+                    <a href={`tel:${profile.phone}`} className="text-blue-600 hover:underline">
+                      {profile.phone}
+                    </a>
+                  </div>
+                )}
+
+                {/* WhatsApp */}
+                {profile.show_contact_number && profile.show_whatsapp && profile.whatsapp_number && (
+                  <div className="flex items-center gap-3">
+                    <MessageCircle className="h-5 w-5 text-green-500" />
+                    <a
+                      href={`https://wa.me/${profile.whatsapp_number}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      WhatsApp
+                    </a>
+                  </div>
+                )}
+
+                {/* Email */}
+                {profile.email && (
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-red-600" />
+                    <a href={`mailto:${profile.email}`} className="text-blue-600 hover:underline">
+                      {profile.email}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </Card>
       </div>
