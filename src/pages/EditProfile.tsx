@@ -259,8 +259,8 @@ export default function EditProfile() {
               <Input
                 id="batch_year"
                 type="number"
-                value={formData.batch_year || ""}
-                onChange={(e) => handleInputChange("batch_year", e.target.value ? parseInt(e.target.value) : 0)}
+                value={formData.batch_year}
+                onChange={(e) => handleInputChange("batch_year", parseInt(e.target.value) || 0)}
                 className="h-10 rounded-lg"
                 min="2006"
               />

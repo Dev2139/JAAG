@@ -33,7 +33,7 @@ export default function AddProfile() {
 
   const [formData, setFormData] = useState({
     full_name: "",
-    batch_year: new Date().getFullYear() - 2015,
+    batch_year: new Date().getFullYear(),
     house: "Aravali",
     profession: "",
     company_name: "",
@@ -246,8 +246,8 @@ export default function AddProfile() {
                 <Label>Batch Year * (Minimum 2006)</Label>
                 <Input
                   type="number"
-                  value={formData.batch_year || ""}
-                  onChange={(e) => setFormData({ ...formData, batch_year: e.target.value ? parseInt(e.target.value) : 0 })}
+                  value={formData.batch_year}
+                  onChange={(e) => setFormData({ ...formData, batch_year: parseInt(e.target.value) || 0 })}
                   min="2006"
                   disabled={loading}
                 />
