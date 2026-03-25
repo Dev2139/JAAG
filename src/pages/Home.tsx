@@ -264,10 +264,11 @@ export default function Home() {
             <div className="px-6 py-8">
               <div className="flex flex-col md:flex-row gap-8 mb-8">
                 <div className="flex flex-col items-center md:items-start">
-                  <Avatar className="h-32 w-32 border-4 border-white -mt-16 mb-4">
-                    <AvatarImage src={selectedAlumni.profile_image_url || undefined} />
-                    <AvatarFallback className="text-2xl">{selectedAlumni.full_name.charAt(0)}</AvatarFallback>
-                  </Avatar>
+                  <img
+                    src={selectedAlumni.profile_image_url || `https://via.placeholder.com/200/cccccc/666666?text=${selectedAlumni.full_name.charAt(0)}`}
+                    alt={selectedAlumni.full_name}
+                    className="h-48 w-48 object-cover border-4 border-white -mt-16 mb-4 shadow-lg"
+                  />
                 </div>
 
                 <div className="flex-1">
@@ -496,7 +497,7 @@ export default function Home() {
 
               {(selectedAlumni.bio || isEditing) && (
                 <div className="mt-8">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Bio</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">How can I help fellow Navodayans:</h2>
                   {isEditing && editFormData ? (
                     <Textarea
                       value={editFormData.bio}

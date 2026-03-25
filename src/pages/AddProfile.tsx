@@ -356,9 +356,9 @@ export default function AddProfile() {
               />
             </div>
 
-            {/* Bio */}
+            {/* How can I help fellow Navodayans */}
             <div>
-              <Label>Bio</Label>
+              <Label>How can I help fellow Navodayans:</Label>
               <Textarea
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
